@@ -1,391 +1,532 @@
-# RAG Application
+Enterprise Knowledge Assistant
 
-A Retrieval-Augmented Generation (RAG) application built with Python, FastAPI, OpenAI, and ChromaDB. This application allows you to upload documents and query them using natural language through both a user-friendly Streamlit frontend and a REST API.
+A document-based Retrieval-Augmented Generation (RAG) application that lets users upload documents and ask natural-language questions about their content.
 
-## Features
+The project combines a FastAPI REST API, OpenAI models, ChromaDB vector search, and a Streamlit web interface. It can also be run with Docker Compose and includes Kubernetes deployment configuration.
 
-- **Document Upload**: Support for PDF, DOCX, and TXT files
-- **Text Processing**: Intelligent text chunking and preprocessing
-- **Vector Search**: ChromaDB for efficient document retrieval
-- **AI Generation**: OpenAI GPT models for response generation
-- **Streamlit Frontend**: User-friendly web interface for document management and querying
-- **REST API**: FastAPI-based API with automatic documentation
-- **Containerization**: Docker and docker-compose support
-- **Kubernetes Ready**: Manifests for Azure Kubernetes Service deployment
+Features
 
-## Quick Start
+Upload PDF, DOCX, and TXT documents
 
-### Prerequisites
+Extract and split document text into manageable chunks
 
-- Python 3.11+
-- OpenAI API key ([Get one here](https://platform.openai.com/api-keys))
-- Docker (for containerized deployment)
-- Kubernetes cluster (for K8s deployment)
+Generate embeddings for document chunks
 
-### ⚡ Quick Start with Scripts
+Store and retrieve embeddings using ChromaDB
 
-1. **Clone and start**:
-   ```bash
-   git clone <repository-url>
-   cd agenticApps
-   ./start.sh
-   ```
-   This script will:
-   - Create environment file from template
-   - Build and start both FastAPI backend and Streamlit frontend
-   - Open the applications at:
-     - Streamlit Frontend: http://localhost:8501
-     - FastAPI Backend: http://localhost:8000
+Retrieve relevant document context for a user query
 
-2. **Test the application**:
-   ```bash
-   python test_rag_app.py
-   ```
+Generate answers using an OpenAI model
 
-### 🐍 Local Development
+Interactive Streamlit interface for uploading and querying documents
 
-1. **Clone the repository**:
-   ```bash
-   git clone <repository-url>
-   cd agenticApps
-   ```
+FastAPI REST API with automatic Swagger documentation
 
-2. **Set up environment**:
-   ```bash
-   cp .env.example .env
-   # Edit .env and add your OpenAI API key:
-   # OPENAI_API_KEY=sk-your-actual-api-key-here
-   ```
+Docker and Docker Compose support
 
-3. **Install dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
+Kubernetes deployment configuration
 
-4. **Upload sample documents** (optional):
-   ```bash
-   # Sample documents are already in the data/ directory
-   ls data/
-   ```
+Health-check endpoint for the backend
 
-5. **Run the application**:
-   ```bash
-   python -m uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
-   ```
+Persistent ChromaDB storage
 
-6. **Access the application**:
-   - Streamlit Frontend: http://localhost:8501 (recommended for users)
-   - FastAPI Backend: http://localhost:8000
-   - API Documentation: http://localhost:8000/docs
-   - Health check: http://localhost:8000/health
+How the RAG Pipeline Works
 
-### 🐳 Docker Deployment
+                ┌──────────────────────┐
+                │   User uploads docs  │
+                │   PDF / DOCX / TXT   │
+                └──────────┬───────────┘
+                           │
+                           ▼
+                ┌──────────────────────┐
+                │ Document Processing  │
+                │ Text extraction     │
+                │ + chunking          │
+                └──────────┬───────────┘
+                           │
+                           ▼
+                ┌──────────────────────┐
+                │ OpenAI Embeddings    │
+                └──────────┬───────────┘
+                           │
+                           ▼
+                ┌──────────────────────┐
+                │      ChromaDB        │
+                │   Vector Database    │
+                └──────────┬───────────┘
+                           │
+                     User question
+                           │
+                           ▼
+                ┌──────────────────────┐
+                │ Query Embedding      │
+                │ + Similarity Search  │
+                └──────────┬───────────┘
+                           │
+                           ▼
+                ┌──────────────────────┐
+                │ Relevant Context     │
+                └──────────┬───────────┘
+                           │
+                           ▼
+                ┌──────────────────────┐
+                │ OpenAI Generation    │
+                │ Context + Question   │
+                └──────────┬───────────┘
+                           │
+                           ▼
+                ┌──────────────────────┐
+                │      Answer          │
+                │  + source context    │
+                └──────────────────────┘
 
-1. **Using the start script** (recommended):
-   ```bash
-   ./start.sh
-   ```
+Tech Stack
 
-2. **Manual Docker setup**:
-   ```bash
-   cp .env.example .env
-   # Edit .env and add your OpenAI API key
-   docker-compose up --build -d
-   ```
+Layer
 
-3. **Access the applications**:
-   - **Streamlit Frontend**: http://localhost:8501 (User Interface)
-   - **FastAPI Backend**: http://localhost:8000 (API)
-   - **API Documentation**: http://localhost:8000/docs
+Technology
 
-## 🎨 Streamlit Frontend
+Language
 
-The application includes a beautiful, user-friendly Streamlit frontend that provides:
+Python 3.11+
 
-### Key Features:
-- **📤 Document Upload Interface**: Drag-and-drop support for PDF, DOCX, and TXT files
-- **💬 Interactive Query Interface**: Natural language questioning with AI responses
-- **📊 Real-time System Monitoring**: API health, document statistics, and performance metrics
-- **🔍 Advanced Search Options**: Configurable result limits and source citations
-- **📜 Query History**: Track recent searches and results
-- **🗑️ Document Management**: Clear documents with confirmation safety
+Backend
 
-### Interface Preview:
-```
-┌─────────────────────────────────────────────────────────────┐
-│                📚 RAG Document Assistant                    │
-├─────────────┬───────────────────────────────────────────────┤
-│  🔧 System  │  ┌─────────────┬─────────────────────────┐   │
-│    Status   │  │ 📤 Upload   │ 💬 Query Documents      │   │
-│             │  │ Documents   │                         │   │
-│  ✅ API     │  └─────────────┴─────────────────────────┘   │
-│    Healthy  │                                               │
-│             │  [Interactive Content Area]                  │
-│  📊 5 Docs  │  • File upload with progress tracking        │
-│    Uploaded │  • Natural language query input             │
-│             │  • AI responses with source citations       │
-│  🗑️ Clear   │  • Real-time performance metrics            │
-│    Data     │                                               │
-└─────────────┴───────────────────────────────────────────────┘
-```
+FastAPI
 
-### Quick Start with Streamlit:
-1. Run `./start.sh` to start both backend and frontend
-2. Open http://localhost:8501 in your browser
-3. Upload documents using the Upload tab
-4. Ask questions using the Query tab
-5. Get AI-powered answers with source citations
+AI / LLM
 
-For detailed usage instructions, see [STREAMLIT_GUIDE.md](STREAMLIT_GUIDE.md).
+OpenAI API
 
-### ☸️ Kubernetes Deployment (Azure AKS)
+Embeddings
 
-1. **Using the deployment script** (recommended):
-   ```bash
-   # Ensure you're connected to your AKS cluster
-   az aks get-credentials --resource-group ragAksCluster_group --name ragAksCluster
-   
-   # Deploy with script
-   ./deploy-k8s.sh
-   ```
+OpenAI Embeddings
 
-2. **Manual Kubernetes setup**:
-   ```bash
-   # Encode your OpenAI API key
-   echo -n "your-openai-api-key" | base64
-   
-   # Edit k8s/secret.yaml and add the encoded key
-   # Edit k8s/deployment.yaml and update the container image registry
-   
-   # Deploy to Kubernetes
-   kubectl apply -f k8s/
-   
-   # Get external IPs
-   kubectl get services -l 'app in (rag-app,streamlit-frontend)'
-   ```
+Vector Database
 
-3. **Access the deployed application**:
-   - **Streamlit Frontend**: External LoadBalancer IP on port 80
-   - **FastAPI Backend**: Available via Ingress at `/api` path
-   - **API Documentation**: Available via Ingress at `/api/docs`
+ChromaDB
 
-## Quick Demo
+Text Splitting
 
-After starting the application, you can test it using either the Streamlit frontend or the API directly:
+LangChain Text Splitters
 
-### Option 1: Using Streamlit Frontend (Recommended)
+Frontend
 
-1. **Open the Streamlit interface**: http://localhost:8501
-2. **Upload documents**: 
-   - Go to "📤 Upload Documents" tab
-   - Select files from the `data/` directory or upload your own
-   - Click "📁 Upload All Files"
-3. **Query documents**:
-   - Switch to "💬 Query Documents" tab
-   - Ask: "What are the main topics covered?"
-   - Review AI response with source citations
+Streamlit
 
-### Option 2: Using API Directly
+API Server
 
-#### 1. Upload Sample Documents
-```bash
-# Upload the sample ML document
+Uvicorn
+
+Containers
+
+Docker, Docker Compose
+
+Deployment
+
+Kubernetes
+
+Project Structure
+
+enterprise-knowledge-assistant/
+│
+├── data/                       # Sample / uploaded documents
+├── k8s/                        # Kubernetes configuration
+├── src/
+│   ├── main.py                 # FastAPI application
+│   ├── config.py               # Application configuration
+│   ├── models/
+│   │   └── schemas.py          # Request / response schemas
+│   ├── services/
+│   │   ├── document_service.py
+│   │   ├── embedding_service.py
+│   │   ├── retrieval_service.py
+│   │   └── generation_service.py
+│   └── utils/
+│       └── text_processing.py
+│
+├── .env.example                # Environment variable template
+├── .gitignore
+├── Dockerfile                  # FastAPI backend image
+├── Dockerfile.streamlit        # Streamlit image
+├── docker-compose.yml
+├── deploy-k8s.sh
+├── deploy-minikube.sh
+├── MINIKUBE_GUIDE.md
+├── requirements.txt
+└── start.sh
+
+Prerequisites
+
+For local development:
+
+Python 3.11 or newer
+
+An OpenAI API key
+
+For Docker deployment:
+
+Docker Desktop with Docker Compose
+
+For Kubernetes deployment:
+
+A Kubernetes cluster
+
+kubectl
+
+The required Kubernetes configuration in the k8s/ directory
+
+Configuration
+
+Create your environment file from the provided template.
+
+Linux / macOS / Git Bash
+
+cp .env.example .env
+
+Windows PowerShell
+
+Copy-Item .env.example .env
+
+Then open .env and add your OpenAI API key:
+
+OPENAI_API_KEY=your-openai-api-key-here
+
+The repository's example configuration includes:
+
+OPENAI_MODEL=gpt-4.1-mini
+OPENAI_EMBEDDING_MODEL=text-embedding-ada-002
+
+DEBUG=false
+HOST=0.0.0.0
+PORT=8000
+
+CHROMA_PERSIST_DIRECTORY=./chroma_db
+COLLECTION_NAME=documents
+
+CHUNK_SIZE=1000
+CHUNK_OVERLAP=200
+MAX_FILE_SIZE=10485760
+
+RETRIEVAL_K=5
+SIMILARITY_THRESHOLD=0.2
+
+Never commit your real .env file or API key to GitHub.
+
+Run with Docker Compose
+
+Docker Compose is the simplest way to run both the FastAPI backend and Streamlit frontend.
+
+First create .env and configure your API key.
+
+Then run:
+
+docker compose up --build
+
+The application will be available at:
+
+Streamlit: http://localhost:8501
+
+FastAPI: http://localhost:8000
+
+Swagger API Docs: http://localhost:8000/docs
+
+Health Check: http://localhost:8000/health
+
+To stop the containers:
+
+docker compose down
+
+Run with the Startup Script
+
+The repository also contains start.sh, which prepares the environment and starts Docker Compose.
+
+On Linux, macOS, Git Bash, or WSL:
+
+./start.sh
+
+The script creates .env from .env.example when needed and checks that an OpenAI API key has been configured before starting the containers.
+
+Local Development
+
+Create and activate a virtual environment:
+
+Windows PowerShell
+
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+
+Linux / macOS
+
+python3 -m venv .venv
+source .venv/bin/activate
+
+Install dependencies:
+
+pip install -r requirements.txt
+
+Create .env from .env.example and configure your OpenAI API key.
+
+Start the FastAPI backend:
+
+python -m uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
+
+The backend will be available at:
+
+http://localhost:8000
+
+Swagger documentation:
+
+http://localhost:8000/docs
+
+The Streamlit interface is normally started together with the backend through Docker Compose.
+
+API Endpoints
+
+Upload a Document
+
+POST /upload
+
+Example:
+
 curl -X POST "http://localhost:8000/upload" \
-     -H "accept: application/json" \
-     -H "Content-Type: multipart/form-data" \
-     -F "file=@data/sample_ml_intro.txt"
+  -H "accept: application/json" \
+  -F "file=@your-document.pdf"
 
-# Upload the sample cloud computing document  
-curl -X POST "http://localhost:8000/upload" \
-     -H "accept: application/json" \
-     -H "Content-Type: multipart/form-data" \
-     -F "file=@data/sample_cloud_computing.txt"
-```
+Supported formats:
 
-#### 2. Query the Documents
-```bash
-# Ask about machine learning
+.pdf
+
+.docx
+
+.txt
+
+Query Documents
+
+POST /query
+
+Example:
+
 curl -X POST "http://localhost:8000/query" \
-     -H "accept: application/json" \
-     -H "Content-Type: application/json" \
-     -d '{
-       "query": "What is machine learning and what are its types?",
-       "max_results": 5,
-       "include_sources": true
-     }'
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "What is the main topic of the document?",
+    "max_results": 5,
+    "include_sources": true
+  }'
 
-# Ask about cloud computing
-curl -X POST "http://localhost:8000/query" \
-     -H "accept: application/json" \
-     -H "Content-Type: application/json" \
-     -d '{
-       "query": "What are the benefits of cloud computing?",
-       "max_results": 3,
-       "include_sources": true
-     }'
-```
+Get Document Statistics
 
-### 3. Check Statistics
-```bash
-curl -X GET "http://localhost:8000/documents/stats"
-```
+GET /documents/stats
 
-## API Endpoints
+Example:
 
-### Upload Document
-```bash
-curl -X POST "http://localhost:8000/upload" \
-     -H "accept: application/json" \
-     -H "Content-Type: multipart/form-data" \
-     -F "file=@your-document.pdf"
-```
+curl "http://localhost:8000/documents/stats"
 
-### Query Documents
-```bash
-curl -X POST "http://localhost:8000/query" \
-     -H "accept: application/json" \
-     -H "Content-Type: application/json" \
-     -d '{
-       "query": "What is the main topic of the document?",
-       "max_results": 5,
-       "include_sources": true
-     }'
-```
+Clear Stored Documents
 
-### Get Document Statistics
-```bash
-curl -X GET "http://localhost:8000/documents/stats"
-```
+DELETE /documents
 
-### Clear All Documents
-```bash
+Example:
+
 curl -X DELETE "http://localhost:8000/documents"
-```
 
-## Configuration
+Health Check
 
-The application can be configured through environment variables:
+GET /health
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `OPENAI_API_KEY` | - | OpenAI API key (required) |
-| `OPENAI_MODEL` | `gpt-3.5-turbo` | OpenAI model for generation |
-| `OPENAI_EMBEDDING_MODEL` | `text-embedding-ada-002` | OpenAI model for embeddings |
-| `DEBUG` | `false` | Enable debug mode |
-| `HOST` | `0.0.0.0` | Server host |
-| `PORT` | `8000` | Server port |
-| `CHUNK_SIZE` | `1000` | Text chunk size for processing |
-| `CHUNK_OVERLAP` | `200` | Overlap between chunks |
-| `RETRIEVAL_K` | `5` | Number of documents to retrieve |
-| `SIMILARITY_THRESHOLD` | `0.7` | Minimum similarity score |
+Example:
 
-## Supported File Types
+curl "http://localhost:8000/health"
 
-- **PDF** (`.pdf`)
-- **Microsoft Word** (`.docx`)
-- **Plain Text** (`.txt`)
+Using the Streamlit Interface
 
-## Architecture
+After starting the application with Docker Compose:
 
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   FastAPI App   │    │   OpenAI API    │    │   ChromaDB      │
-│                 │    │                 │    │                 │
-│ - Upload docs   │◄───┤ - Embeddings    │    │ - Vector store  │
-│ - Query API     │    │ - Generation    │    │ - Similarity    │
-│ - Health check  │    │                 │    │   search        │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-```
+Open http://localhost:8501
 
-## Development
+Upload one or more supported documents.
 
-### Project Structure
-```
-src/
-├── main.py              # FastAPI application
-├── config.py            # Configuration management
-├── models/
-│   └── schemas.py       # Pydantic models
-├── services/
-│   ├── document_service.py     # Document processing
-│   ├── embedding_service.py    # OpenAI embeddings
-│   ├── retrieval_service.py    # Vector database
-│   └── generation_service.py   # Response generation
-└── utils/
-    └── text_processing.py      # Text utilities
-```
+Wait for document processing to complete.
 
-## Testing
+Enter a natural-language question.
 
-### Run Basic Tests
-```bash
-# Test application structure and basic functionality
-python test_rag_app.py
+The application retrieves relevant document content.
 
-# Test basic imports and syntax (no external dependencies)
-python test_basic.py
-```
+The OpenAI model generates an answer using the retrieved context.
 
-### Manual Testing
-1. **Start the application**:
-   ```bash
-   ./start.sh  # or docker-compose up
-   ```
+Docker Architecture
 
-2. **Upload a document**:
-   - Go to http://localhost:8000/docs
-   - Use the `/upload` endpoint to upload a PDF, DOCX, or TXT file
-   - Or use the sample documents in the `data/` directory
+The Docker Compose setup contains two application services:
 
-3. **Query the documents**:
-   - Use the `/query` endpoint to ask questions
-   - Check the response includes relevant sources
+                    ┌──────────────────────┐
+                    │   Streamlit Frontend │
+                    │      Port 8501       │
+                    └──────────┬───────────┘
+                               │
+                               ▼
+                    ┌──────────────────────┐
+                    │    FastAPI Backend   │
+                    │      Port 8000       │
+                    └──────────┬───────────┘
+                               │
+                    ┌──────────┴───────────┐
+                    ▼                      ▼
+             ┌──────────────┐      ┌──────────────┐
+             │   OpenAI API │      │   ChromaDB   │
+             │ LLM + Embed. │      │ Vector Store │
+             └──────────────┘      └──────────────┘
 
-4. **Monitor health**:
-   - Check http://localhost:8000/health for application status
+ChromaDB data is persisted through the Docker volume defined in docker-compose.yml.
 
-## Monitoring and Logging
+Kubernetes
 
-- Health check endpoint: `/health`
-- Structured logging with configurable levels
-- Docker health checks included
-- Kubernetes liveness and readiness probes
+The repository includes Kubernetes configuration under:
 
-## Security Considerations
+k8s/
 
-- Non-root user in Docker container
-- Environment-based configuration
-- API key stored in Kubernetes secrets
-- Resource limits in Kubernetes deployment
+It also contains deployment helper scripts and a Minikube guide.
 
-## Scaling
+Before deploying to any Kubernetes environment:
 
-The application is designed to be scalable:
+Review the manifests in k8s/.
 
-- Stateless design (vector DB persisted separately)
-- Kubernetes horizontal pod autoscaling ready
-- Load balancer support
-- Persistent volume claims for data storage
+Configure the required secrets securely.
 
-## Troubleshooting
+Set the appropriate container image and environment values for your cluster.
 
-### Common Issues
+Apply the manifests using kubectl.
 
-1. **OpenAI API key not set**:
-   - Ensure `OPENAI_API_KEY` is properly configured
+Example:
 
-2. **File upload fails**:
-   - Check file size limits (default 10MB)
-   - Verify supported file formats
+kubectl apply -f k8s/
 
-3. **No relevant documents found**:
-   - Lower `SIMILARITY_THRESHOLD` in configuration
-   - Upload more relevant documents
+Do not commit real API keys or other secrets to Kubernetes manifests.
 
-4. **Memory issues**:
-   - Adjust `CHUNK_SIZE` to smaller values
-   - Increase container memory limits
+Configuration Reference
 
-## License
+Variable
 
-This project is licensed under the MIT License.
+Purpose
+
+OPENAI_API_KEY
+
+OpenAI API authentication
+
+OPENAI_MODEL
+
+Model used for answer generation
+
+OPENAI_EMBEDDING_MODEL
+
+Model used for embeddings
+
+DEBUG
+
+Enables debug mode
+
+HOST
+
+FastAPI host
+
+PORT
+
+FastAPI port
+
+CHROMA_PERSIST_DIRECTORY
+
+ChromaDB storage location
+
+COLLECTION_NAME
+
+ChromaDB collection name
+
+CHUNK_SIZE
+
+Size of text chunks
+
+CHUNK_OVERLAP
+
+Overlap between chunks
+
+MAX_FILE_SIZE
+
+Maximum uploaded file size
+
+RETRIEVAL_K
+
+Number of results retrieved
+
+SIMILARITY_THRESHOLD
+
+Minimum similarity threshold
+
+Troubleshooting
+
+OpenAI API key error
+
+Make sure .env exists and contains a valid key:
+
+OPENAI_API_KEY=your-real-api-key
+
+Restart the application after changing environment variables.
+
+Port already in use
+
+If port 8000 or 8501 is already being used, stop the process using that port or change the port mapping in docker-compose.yml.
+
+No relevant results
+
+Try:
+
+Uploading a document containing information related to the question.
+
+Asking a more specific question.
+
+Adjusting RETRIEVAL_K.
+
+Reviewing SIMILARITY_THRESHOLD in the environment configuration.
+
+Docker containers do not start
+
+Try rebuilding the images:
+
+docker compose down
+docker compose build --no-cache
+docker compose up
+
+Security Notes
+
+Keep API keys in environment variables.
+
+Do not commit .env files containing secrets.
+
+Review Kubernetes secrets before deployment.
+
+Do not expose the application publicly without appropriate authentication, authorization, network controls, and secret management.
+
+Future Improvements
+
+Potential extensions include:
+
+Authentication and user management
+
+Conversation history
+
+Better document metadata filtering
+
+Multiple vector-store backends
+
+Reranking for improved retrieval quality
+
+Evaluation of retrieval and answer quality
+
+Streaming model responses
+
+Observability and usage metrics
+
+Cloud-native deployment and monitoring
+
+License
+
+This project is released under the MIT License.
